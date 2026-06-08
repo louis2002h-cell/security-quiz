@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>보안퀴즈 — NFT 수료증 발급</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #111827;
+    --bg3: #1a2235;
+    --border: rgba(99,179,237,0.15);
+    --accent: #63b3ed;
+    --accent2: #90cdf4;
+    --green: #68d391;
+    --red: #fc8181;
+    --text: #e2e8f0;
+    --muted: #718096;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 배경 격자 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  header {
+    width: 100%;
+    max-width: 720px;
+    padding: 48px 24px 0;
+    text-align: center;
+    animation: fadeDown 0.6s ease both;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  /* 지갑 연결 버튼 */
+  #wallet-section {
+    width: 100%;
+    max-width: 720px;
+    padding: 0 24px;
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+  .wallet-bar {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .wallet-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  #connect-btn {
+    background: var(--accent);
+    color: #0a0e1a;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+  #connect-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  #connect-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* 진행 바 */
+  .progress-wrap {
+    width: 100%;
+    max-width: 720px;
+    padding: 0 24px;
+    margin-bottom: 24px;
+    animation: fadeDown 0.6s 0.15s ease both;
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* 퀴즈 카드 */
+  #quiz-section {
+    width: 100%;
+    max-width: 720px;
+    padding: 0 24px;
+    flex: 1;
+  }
+  .quiz-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .q-number {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .q-text {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--sans);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .option-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 20px;
+  }
+  .option:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(99,179,237,0.08);
+    transform: translateX(4px);
+  }
+  .option.correct {
+    border-color: var(--green);
+    background: rgba(104,211,145,0.1);
+    color: var(--green);
+  }
+  .option.wrong {
+    border-color: var(--red);
+    background: rgba(252,129,129,0.1);
+    color: var(--red);
+  }
+  .option:disabled { cursor: not-allowed; }
+
+  /* 피드백 */
+  .feedback {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: rgba(104,211,145,0.1); border: 1px solid rgba(104,211,145,0.3); color: var(--green); }
+  .feedback.wrong-fb { background: rgba(252,129,129,0.1); border: 1px solid rgba(252,129,129,0.3); color: var(--red); }
+
+  /* 다음 버튼 */
+  #next-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.2s;
+    display: none;
+  }
+  #next-btn.show { display: block; }
+  #next-btn:hover { background: var(--accent); color: #0a0e1a; }
+
+  /* 결과 화면 */
+  #result-section {
+    width: 100%;
+    max-width: 720px;
+    padding: 0 24px 48px;
+    display: none;
+    animation: fadeUp 0.6s ease both;
+  }
+  .result-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    text-align: center;
+  }
+  .result-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  .result-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .result-score {
+    font-family: var(--mono);
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 16px 0;
+  }
+  .result-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+  }
+  #mint-btn {
+    background: var(--accent);
+    color: #0a0e1a;
+    border: none;
+    border-radius: 10px;
+    padding: 16px 32px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 320px;
+  }
+  #mint-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-2px); }
+  #mint-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* 상태 메시지 */
+  #status-msg {
+    margin-top: 16px;
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--muted);
+    min-height: 20px;
+  }
+  #status-msg.success { color: var(--green); }
+  #status-msg.error { color: var(--red); }
+  #status-msg.loading { color: var(--accent); }
+
+  /* TX 링크 */
+  #tx-link { display: none; margin-top: 12px; }
+  #tx-link a {
+    color: var(--accent2);
+    font-size: 12px;
+    font-family: var(--mono);
+    text-decoration: none;
+  }
+  #tx-link a:hover { text-decoration: underline; }
+
+  /* 재시도 버튼 */
+  #retry-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 24px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 12px;
+    display: none;
+    transition: all 0.2s;
+  }
+  #retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+  #retry-btn.show { display: inline-block; }
+
+  footer {
+    padding: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    text-align: center;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Security Quiz · NFT Certificate</div>
+  <h1>보안 지식을 증명하고<br><span>NFT 수료증</span>을 받으세요</h1>
+  <p class="subtitle">5개의 보안 퀴즈를 모두 맞추면 Polygon 네트워크에서<br>NFT 수료증이 여러분의 지갑으로 발급됩니다.</p>
+</header>
+
+<!-- 지갑 연결 -->
+<div id="wallet-section">
+  <div class="wallet-bar">
+    <div class="wallet-status">
+      <div class="dot" id="wallet-dot"></div>
+      <span id="wallet-addr">MetaMask 지갑을 연결해주세요</span>
+    </div>
+    <button id="connect-btn" onclick="connectWallet()">지갑 연결</button>
+  </div>
+</div>
+
+<!-- 진행 바 -->
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span id="progress-text">0 / 5 완료</span>
+    <span id="score-text">점수: 0점</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+  </div>
+</div>
+
+<!-- 퀴즈 영역 -->
+<div id="quiz-section">
+  <div class="quiz-card" id="quiz-card">
+    <div class="q-number" id="q-number">Q.01 / 05</div>
+    <div class="q-text" id="q-text">퀴즈 로딩 중...</div>
+    <div class="options" id="options-wrap"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <button id="next-btn" onclick="nextQuestion()">다음 문제 →</button>
+</div>
+
+<!-- 결과 화면 -->
+<div id="result-section">
+  <div class="result-card">
+    <div class="result-icon" id="result-icon">🎉</div>
+    <div class="result-title" id="result-title">퀴즈 완료!</div>
+    <div class="result-score" id="result-score">5 / 5</div>
+    <div class="result-desc" id="result-desc">모든 문제를 맞췄습니다! NFT 수료증을 발급받으세요.</div>
+    <button id="mint-btn" onclick="mintNFT()" disabled>지갑을 먼저 연결해주세요</button>
+    <div id="status-msg"></div>
+    <div id="tx-link"><a id="tx-anchor" href="#" target="_blank">트랜잭션 확인하기 →</a></div>
+    <button id="retry-btn" class="retry-btn" onclick="restartQuiz()">다시 풀기</button>
+  </div>
+</div>
+
+<footer>louis2002h-cell / security-quiz · Polygon Mumbai Testnet</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+// =============================================
+// 설정값 — 나중에 여기만 바꾸면 됩니다
+// =============================================
+const CONTRACT_ADDRESS = "여기에_배포된_컨트랙트_주소_입력";
+const CONTRACT_ABI = [
+  {
+    "inputs": [],
+    "name": "createCertificate",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+const NETWORK_ID = 80001; // Mumbai Testnet (메인넷은 137)
+// =============================================
+
+// 퀴즈 문제 데이터
+const questions = [
+  {
+    q: "피싱(Phishing) 공격이란 무엇인가요?",
+    options: [
+      "컴퓨터 파일을 암호화하여 몸값을 요구하는 공격",
+      "신뢰할 수 있는 기관인 척 속여 개인정보를 탈취하는 공격",
+      "네트워크 트래픽을 과부하시켜 서비스를 마비시키는 공격",
+      "다른 사람의 무선 네트워크에 몰래 접속하는 행위"
+    ],
+    answer: 1,
+    explanation: "피싱은 은행, 기업 등을 사칭하여 이메일이나 가짜 웹사이트로 비밀번호, 카드번호 등 민감한 정보를 빼내는 사회공학적 공격입니다."
+  },
+  {
+    q: "강력한 비밀번호의 조건으로 가장 올바른 것은?",
+    options: [
+      "기억하기 쉽게 생년월일을 사용한다",
+      "영문 소문자만으로 12자리 이상 구성한다",
+      "영문 대소문자, 숫자, 특수문자를 조합하여 8자리 이상 사용한다",
+      "모든 사이트에 동일한 비밀번호를 사용하되 길게 만든다"
+    ],
+    answer: 2,
+    explanation: "강력한 비밀번호는 영문 대소문자 + 숫자 + 특수문자의 조합으로 8자리 이상이어야 하며, 사이트마다 다른 비밀번호를 사용해야 합니다."
+  },
+  {
+    q: "HTTPS가 HTTP보다 안전한 이유는 무엇인가요?",
+    options: [
+      "데이터 전송 속도가 더 빠르기 때문에",
+      "SSL/TLS 암호화로 데이터를 보호하기 때문에",
+      "서버 용량이 더 크기 때문에",
+      "광고를 차단해주기 때문에"
+    ],
+    answer: 1,
+    explanation: "HTTPS는 SSL/TLS 프로토콜을 사용해 브라우저와 서버 사이의 통신을 암호화합니다. 중간자 공격(MITM)으로부터 데이터를 보호합니다."
+  },
+  {
+    q: "2단계 인증(2FA)을 사용하는 가장 큰 이유는?",
+    options: [
+      "로그인 속도를 높이기 위해",
+      "비밀번호가 유출되더라도 계정을 보호하기 위해",
+      "비밀번호를 더 짧게 만들어도 되기 위해",
+      "인터넷 연결 없이도 로그인하기 위해"
+    ],
+    answer: 1,
+    explanation: "2FA는 비밀번호 외에 OTP, SMS 인증 등 2번째 인증 수단을 요구합니다. 비밀번호가 탈취되어도 계정에 접근할 수 없어 보안을 크게 강화합니다."
+  },
+  {
+    q: "랜섬웨어(Ransomware)에 감염됐을 때 가장 올바른 대응은?",
+    options: [
+      "즉시 몸값을 지불하여 파일을 복구한다",
+      "감염된 파일을 모두 직접 삭제한다",
+      "네트워크 연결을 끊고 전문 기관에 신고 및 도움을 요청한다",
+      "컴퓨터를 재시작하면 해결된다"
+    ],
+    answer: 2,
+    explanation: "랜섬웨어 감염 시 즉시 네트워크를 차단해 확산을 막고, 한국인터넷진흥원(KISA) 등 전문 기관에 신고해야 합니다. 몸값 지불은 권고하지 않습니다."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+let userAccount = null;
+let provider = null;
+let signer = null;
+
+// 퀴즈 초기화
+function initQuiz() {
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('q-number').textContent = `Q.${String(currentQ+1).padStart(2,'0')} / ${String(questions.length).padStart(2,'0')}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+  const labels = ['A', 'B', 'C', 'D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="option-label">${labels[i]}</span>${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').className = 'next-btn';
+  answered = false;
+
+  updateProgress();
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[currentQ];
+  const options = document.querySelectorAll('.option');
+  options.forEach(btn => btn.disabled = true);
+
+  const fb = document.getElementById('feedback');
+
+  if (idx === q.answer) {
+    options[idx].classList.add('correct');
+    score++;
+    fb.className = 'feedback correct-fb show';
+    fb.textContent = '✓ 정답입니다! ' + q.explanation;
+  } else {
+    options[idx].classList.add('wrong');
+    options[q.answer].classList.add('correct');
+    fb.className = 'feedback wrong-fb show';
+    fb.textContent = '✗ 오답입니다. ' + q.explanation;
+  }
+
+  updateProgress();
+
+  const nextBtn = document.getElementById('next-btn');
+  if (currentQ < questions.length - 1) {
+    nextBtn.className = 'next-btn show';
+    nextBtn.textContent = '다음 문제 →';
+  } else {
+    nextBtn.className = 'next-btn show';
+    nextBtn.textContent = '결과 확인하기 →';
+  }
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < questions.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function updateProgress() {
+  const done = answered ? currentQ + 1 : currentQ;
+  const pct = (done / questions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${done} / ${questions.length} 완료`;
+  document.getElementById('score-text').textContent = `점수: ${score}점`;
+}
+
+function showResult() {
+  document.getElementById('quiz-section').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'none';
+  const rs = document.getElementById('result-section');
+  rs.style.display = 'block';
+
+  document.getElementById('result-score').textContent = `${score} / ${questions.length}`;
+
+  const passed = score >= 4;
+  if (passed) {
+    document.getElementById('result-icon').textContent = '🎉';
+    document.getElementById('result-title').textContent = '합격! NFT 수료증 발급 가능';
+    document.getElementById('result-desc').textContent = `${score}문제를 맞췄습니다! 아래 버튼을 눌러 NFT 수료증을 발급받으세요. (4문제 이상 정답 시 발급)`;
+    const mintBtn = document.getElementById('mint-btn');
+    if (userAccount) {
+      mintBtn.disabled = false;
+      mintBtn.textContent = 'NFT 수료증 발급받기 →';
+    } else {
+      mintBtn.disabled = true;
+      mintBtn.textContent = '지갑을 먼저 연결해주세요';
+    }
+    document.getElementById('retry-btn').className = 'retry-btn';
+  } else {
+    document.getElementById('result-icon').textContent = '📚';
+    document.getElementById('result-title').textContent = '아쉽습니다, 재도전해보세요';
+    document.getElementById('result-desc').textContent = `${score}문제 정답. NFT 발급은 4문제 이상 정답이 필요합니다. 다시 도전해보세요!`;
+    document.getElementById('mint-btn').style.display = 'none';
+    document.getElementById('retry-btn').className = 'retry-btn show';
+  }
+}
+
+function restartQuiz() {
+  currentQ = 0;
+  score = 0;
+  answered = false;
+  document.getElementById('quiz-section').style.display = 'block';
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('mint-btn').style.display = 'block';
+  renderQuestion();
+}
+
+// MetaMask 연결
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    alert('MetaMask가 설치되어 있지 않습니다.\nmetamask.io에서 설치해주세요.');
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    userAccount = accounts[0];
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+
+    const network = await provider.getNetwork();
+    if (network.chainId !== NETWORK_ID) {
+      setStatus('⚠ 네트워크를 Polygon Mumbai (chainId: 80001)로 변경해주세요.', 'error');
+    }
+
+    const dot = document.getElementById('wallet-dot');
+    dot.classList.add('connected');
+    document.getElementById('wallet-addr').textContent =
+      userAccount.slice(0,6) + '...' + userAccount.slice(-4) + ' 연결됨';
+    document.getElementById('connect-btn').textContent = '연결됨';
+    document.getElementById('connect-btn').disabled = true;
+
+    const mintBtn = document.getElementById('mint-btn');
+    if (mintBtn && !mintBtn.style.display && score >= 4) {
+      mintBtn.disabled = false;
+      mintBtn.textContent = 'NFT 수료증 발급받기 →';
+    }
+  } catch (e) {
+    setStatus('지갑 연결 실패: ' + e.message, 'error');
+  }
+}
+
+// NFT 발급
+async function mintNFT() {
+  if (!userAccount) { alert('지갑을 먼저 연결해주세요.'); return; }
+  if (CONTRACT_ADDRESS === "여기에_배포된_컨트랙트_주소_입력") {
+    setStatus('⚠ 컨트랙트 주소를 코드에 입력해주세요.', 'error');
+    return;
+  }
+
+  const mintBtn = document.getElementById('mint-btn');
+  mintBtn.disabled = true;
+  mintBtn.textContent = '발급 처리 중...';
+  setStatus('트랜잭션 서명 요청 중...', 'loading');
+
+  try {
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    const tx = await contract.createCertificate();
+    setStatus('트랜잭션 전송됨, 블록 확인 대기 중...', 'loading');
+
+    await tx.wait();
+
+    setStatus('🎉 NFT 수료증이 발급되었습니다!', 'success');
+    mintBtn.textContent = '발급 완료!';
+
+    const txLink = document.getElementById('tx-link');
+    txLink.style.display = 'block';
+    document.getElementById('tx-anchor').href =
+      `https://mumbai.polygonscan.com/tx/${tx.hash}`;
+
+  } catch (e) {
+    setStatus('발급 실패: ' + (e.reason || e.message), 'error');
+    mintBtn.disabled = false;
+    mintBtn.textContent = 'NFT 수료증 발급받기 →';
+    document.getElementById('retry-btn').className = 'retry-btn show';
+  }
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className = type || '';
+}
+
+// 시작
+initQuiz();
+</script>
+</body>
+</html>
