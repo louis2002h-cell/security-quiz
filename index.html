@@ -528,7 +528,7 @@ function renderQuestion() {
 
   document.getElementById('feedback').className = 'feedback';
   document.getElementById('feedback').textContent = '';
-  document.getElementById('next-btn').className = 'next-btn';
+  document.getElementById('next-btn').style.display = 'none';
   answered = false;
 
   updateProgress();
@@ -559,11 +559,10 @@ function selectAnswer(idx) {
   updateProgress();
 
   const nextBtn = document.getElementById('next-btn');
+  nextBtn.style.display = 'block';
   if (currentQ < questions.length - 1) {
-    nextBtn.className = 'next-btn show';
     nextBtn.textContent = '다음 문제 →';
   } else {
-    nextBtn.className = 'next-btn show';
     nextBtn.textContent = '결과 확인하기 →';
   }
 }
