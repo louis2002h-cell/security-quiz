@@ -419,14 +419,14 @@
   </div>
 </div>
 
-<footer>louis2002h-cell / security-quiz · Polygon Mumbai Testnet</footer>
+<footer>louis2002h-cell / security-quiz · Remix VM</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
 // =============================================
 // 설정값 — 나중에 여기만 바꾸면 됩니다
 // =============================================
-const CONTRACT_ADDRESS = "여기에_배포된_컨트랙트_주소_입력";
+const CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
 const CONTRACT_ABI = [
   {
     "inputs": [],
@@ -436,7 +436,7 @@ const CONTRACT_ABI = [
     "type": "function"
   }
 ];
-const NETWORK_ID = 80001; // Mumbai Testnet (메인넷은 137)
+const NETWORK_ID = 1337; // Remix VM
 // =============================================
 
 // 퀴즈 문제 데이터
@@ -687,7 +687,7 @@ async function mintNFT() {
     const txLink = document.getElementById('tx-link');
     txLink.style.display = 'block';
     document.getElementById('tx-anchor').href =
-      `https://mumbai.polygonscan.com/tx/${tx.hash}`;
+      `https://remix.ethereum.org`;
 
   } catch (e) {
     setStatus('발급 실패: ' + (e.reason || e.message), 'error');
